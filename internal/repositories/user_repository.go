@@ -55,3 +55,24 @@ func (r *UserRepository) CheckUserExists(userID uint) (bool, error) {
 	}
 	return count > 0, nil
 }
+
+func (r *UserRepository) UpdatePhotoURL(userID uint, photoURL string) error {
+	return r.db.Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("photo_url", photoURL).Error
+}
+
+func (r *UserRepository) ClearPhotoURL(userID uint) error {
+	return r.db.Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("photo_url", "").Error
+}
+
+func (r *UserRepository) GetPhotoURL(userID uint) (string, error) {
+	var user models.User
+	err := r.db.Select("photo_url").Where("id = ?", userID).First(&user).Error
+	if err != nil {
+		return "", err
+	}
+	return user.PhotoURL, nil
+}

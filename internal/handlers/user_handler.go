@@ -1,9 +1,13 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -160,4 +164,115 @@ func (h *UserHandler) GetWorkingExperience(w http.ResponseWriter, r *http.Reques
 		"workingExperience": workingExperience,
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+func (h *UserHandler) UploadPhoto(w http.ResponseWriter, r *http.Request) {
+	userID, err := strconv.Atoi(mux.Vars(r)["user_id"])
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	exists, err := h.repo.CheckUserExists(uint(userID))
+	if err != nil {
+		http.Error(w, "Database error while validating user_id", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	var requestBody struct {
+		Base64Img string `json:"base64img"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Decode Base64 string
+	base64Data := requestBody.Base64Img[strings.IndexByte(requestBody.Base64Img, ',')+1:]
+	imageData, err := base64.StdEncoding.DecodeString(base64Data)
+	if err != nil {
+		http.Error(w, "Invalid Base64 data", http.StatusBadRequest)
+		return
+	}
+
+	// Save image to the ./image-upload directory
+	filePath := fmt.Sprintf("./image-upload/user_%d.png", userID)
+	err = os.WriteFile(filePath, imageData, 0644)
+	if err != nil {
+		http.Error(w, "Failed to save image", http.StatusInternalServerError)
+		return
+	}
+
+	photoURL := fmt.Sprintf("/image-upload/user_%d.png", userID)
+	if err := h.repo.UpdatePhotoURL(uint(userID), photoURL); err != nil {
+		http.Error(w, "Failed to update PhotoURL", http.StatusInternalServerError)
+		return
+	}
+
+	response := map[string]string{"photoUrl": photoURL}
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *UserHandler) DownloadPhoto(w http.ResponseWriter, r *http.Request) {
+	userID, err := strconv.Atoi(mux.Vars(r)["user_id"])
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	photoURL, err := h.repo.GetPhotoURL(uint(userID))
+	if err != nil {
+		http.Error(w, "Failed to fetch photo URL", http.StatusInternalServerError)
+		return
+	}
+	if photoURL == "" {
+		http.Error(w, "No photo found", http.StatusNotFound)
+		return
+	}
+
+	filePath := "." + photoURL
+	http.ServeFile(w, r, filePath)
+}
+
+func (h *UserHandler) DeletePhoto(w http.ResponseWriter, r *http.Request) {
+	userID, err := strconv.Atoi(mux.Vars(r)["user_id"])
+	if err != nil {
+		http.Error(w, "Invalid user_id", http.StatusBadRequest)
+		return
+	}
+
+	exists, err := h.repo.CheckUserExists(uint(userID))
+	if err != nil {
+		http.Error(w, "Database error while validating user_id", http.StatusInternalServerError)
+		return
+	}
+	if !exists {
+		http.Error(w, "User not found", http.StatusNotFound)
+		return
+	}
+
+	photoURL, err := h.repo.GetPhotoURL(uint(userID))
+	if err != nil {
+		http.Error(w, "Failed to fetch photo URL", http.StatusInternalServerError)
+		return
+	}
+
+	if photoURL != "" {
+		filePath := "." + photoURL
+		if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+			http.Error(w, "Failed to delete image file", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	if err := h.repo.ClearPhotoURL(uint(userID)); err != nil {
+		http.Error(w, "Failed to clear PhotoURL", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

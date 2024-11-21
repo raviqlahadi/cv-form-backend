@@ -45,5 +45,9 @@ func InitRoutes() *mux.Router {
 	apiRouter.HandleFunc("/working-experience/{user_id}", userHandler.UpdateWorkingExperience).Methods("PUT")
 	apiRouter.HandleFunc("/working-experience/{user_id}", userHandler.GetWorkingExperience).Methods("GET")
 
+	apiRouter.HandleFunc("/photo/{user_id}", userHandler.UploadPhoto).Methods("PUT")
+	apiRouter.HandleFunc("/photo/{user_id}", userHandler.DownloadPhoto).Methods("GET")
+	apiRouter.HandleFunc("/photo/{user_id}", userHandler.DeletePhoto).Methods("DELETE")
+
 	return router
 }
