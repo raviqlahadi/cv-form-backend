@@ -42,5 +42,8 @@ func InitRoutes() *mux.Router {
 	apiRouter.HandleFunc("/skill/{user_id}", skillHandler.Update).Methods("PUT")
 	apiRouter.HandleFunc("/skill/{user_id}", skillHandler.Delete).Methods("DELETE")
 
+	apiRouter.HandleFunc("/working-experience/{user_id}", userHandler.UpdateWorkingExperience).Methods("PUT")
+	apiRouter.HandleFunc("/working-experience/{user_id}", userHandler.GetWorkingExperience).Methods("GET")
+
 	return router
 }

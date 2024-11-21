@@ -29,3 +29,29 @@ func (r *UserRepository) GetByID(id uint) (*models.User, error) {
 func (r *UserRepository) Update(user *models.User) error {
 	return r.db.Save(user).Error
 }
+
+func (r *UserRepository) UpdateWorkingExperience(userID uint, workingExperience string) error {
+	return r.db.Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("working_experience", workingExperience).Error
+}
+
+func (r *UserRepository) GetWorkingExperience(userID uint) (string, error) {
+	var user models.User
+	err := r.db.Select("working_experience").
+		Where("id = ?", userID).
+		First(&user).Error
+	if err != nil {
+		return "", err
+	}
+	return user.WorkingExperience, nil
+}
+
+func (r *UserRepository) CheckUserExists(userID uint) (bool, error) {
+	var count int64
+	err := r.db.Model(&models.User{}).Where("id = ?", userID).Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+	return count > 0, nil
+}
