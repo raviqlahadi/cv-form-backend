@@ -12,10 +12,14 @@ func InitRoutes() *mux.Router {
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository()
 	employmentRepo := repositories.NewEmploymentRepository()
+	educationRepo := repositories.NewEducationRepository()
+	skillRepo := repositories.NewSkillRepository()
+
 	// Initialize handlers
 	userHandler := handlers.NewUserHandler(userRepo)
-
 	employmentHandler := handlers.NewEmploymentHandler(employmentRepo)
+	educationHandler := handlers.NewEducationHandler(educationRepo)
+	skillHandler := handlers.NewSkillHandler(skillRepo)
 
 	// Public routes
 	apiRouter := router.PathPrefix("/api").Subrouter()
@@ -27,6 +31,16 @@ func InitRoutes() *mux.Router {
 	apiRouter.HandleFunc("/employment/{user_id}", employmentHandler.GetByUserID).Methods("GET")
 	apiRouter.HandleFunc("/employment/{user_id}", employmentHandler.Update).Methods("PUT")
 	apiRouter.HandleFunc("/employment/{user_id}", employmentHandler.Delete).Methods("DELETE")
+
+	apiRouter.HandleFunc("/education/{user_id}", educationHandler.Create).Methods("POST")
+	apiRouter.HandleFunc("/education/{user_id}", educationHandler.GetByUserID).Methods("GET")
+	apiRouter.HandleFunc("/education/{user_id}", educationHandler.Update).Methods("PUT")
+	apiRouter.HandleFunc("/education/{user_id}", educationHandler.Delete).Methods("DELETE")
+
+	apiRouter.HandleFunc("/skill/{user_id}", skillHandler.Create).Methods("POST")
+	apiRouter.HandleFunc("/skill/{user_id}", skillHandler.GetByUserID).Methods("GET")
+	apiRouter.HandleFunc("/skill/{user_id}", skillHandler.Update).Methods("PUT")
+	apiRouter.HandleFunc("/skill/{user_id}", skillHandler.Delete).Methods("DELETE")
 
 	return router
 }
