@@ -10,25 +10,16 @@ CREATE TABLE users (
     city VARCHAR(50),
     address VARCHAR(255),
     postal_code VARCHAR(20),
+    wanted_job_title VARCHAR(100),
+    photo_url VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Profiles Table
-CREATE TABLE profiles (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    wanted_job_title VARCHAR(100),
-    profile_picture_url VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Employment Table
 CREATE TABLE employment (
     id SERIAL PRIMARY KEY,
-    profile_id INT NOT NULL,
+    user_id INT NOT NULL,
     job_title VARCHAR(100) NOT NULL,
     employer VARCHAR(100),
     start_date DATE NOT NULL,
@@ -37,13 +28,13 @@ CREATE TABLE employment (
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Education Table
 CREATE TABLE education (
     id SERIAL PRIMARY KEY,
-    profile_id INT NOT NULL,
+    user_id INT NOT NULL,
     school VARCHAR(100) NOT NULL,
     degree VARCHAR(50),
     start_date DATE NOT NULL,
@@ -52,26 +43,16 @@ CREATE TABLE education (
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Skills Table
 CREATE TABLE skills (
     id SERIAL PRIMARY KEY,
-    profile_id INT NOT NULL,
+    user_id INT NOT NULL,
     skill VARCHAR(100) NOT NULL,
     level VARCHAR(50) CHECK (level IN ('Beginner', 'Intermediate', 'Advanced', 'Expert')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
-);
-
--- Photos Table
-CREATE TABLE photos (
-    id SERIAL PRIMARY KEY,
-    profile_id INT NOT NULL,
-    photo_url VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
