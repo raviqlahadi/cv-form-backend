@@ -1,0 +1,7 @@
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=dev
+DB_PASSWORD=dev123a
+DB_NAME=cv_form
+DB_SSLMODE=disable
+SECRET_KEY=thisissecret
